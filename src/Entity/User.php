@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Dto\UserDTO;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -89,5 +90,16 @@ class User
         $this->email = $email;
 
         return $this;
+    }
+
+    public static function fromDto(UserDTO $dto)
+    {
+        $user = new self();
+        $user->setName($dto->name);
+        $user->setSurname($dto->surname);
+        $user->setEmail($dto->email);
+        $user->setPassword($dto->password);
+
+        return $user;
     }
 }
