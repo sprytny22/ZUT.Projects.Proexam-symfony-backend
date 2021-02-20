@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
-use App\Dto\UserDTO;
 use App\Repository\UserRepository;
+use App\Request\UserRequest;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -38,6 +40,16 @@ class User
      * @ORM\Column(type="string", length=255)
      */
     private $email;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Group", mappedBy="users")
+     */
+    private $groups;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -92,7 +104,7 @@ class User
         return $this;
     }
 
-    public static function fromDto(UserDTO $dto)
+    public static function fromDto(UserRequest $dto)
     {
         $user = new self();
         $user->setName($dto->name);
@@ -101,5 +113,28 @@ class User
         $user->setPassword($dto->password);
 
         return $user;
+    }
+
+    public function getGroups(): Collection
+    {
+        return $this->groups;
+    }
+
+    public function addGroup(Group $group): self
+    {
+        if (!$this->groups->contains($group)) {
+            $this->groups[] = $group;
+        }
+
+        return $this;
+    }
+
+    public function removeGroup(User $group): self
+    {
+        if ($this->groups->contains($group)) {
+            $this->groups->removeElement($group);
+        }
+
+        return $this;
     }
 }

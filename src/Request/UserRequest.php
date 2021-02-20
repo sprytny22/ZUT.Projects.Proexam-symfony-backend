@@ -1,16 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Dto;
+namespace App\Request;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class UserDTO
+class UserRequest
 {
     /**
-     * @Assert\NotBlank()
-     */
+    * @Assert\NotBlank()
+    */
     public $name;
 
     /**
@@ -27,5 +25,5 @@ class UserDTO
      * @Assert\NotBlank()
      */
     public $email;
-}
 
+}
