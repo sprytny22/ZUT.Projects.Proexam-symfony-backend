@@ -1,5 +1,8 @@
+api_login_check:
+    path: /api/login_check
+
 showUsers:
-    path: /users
+    path: /api/users
     methods: [GET]
     controller: App\Controller\UserController::showAll
 

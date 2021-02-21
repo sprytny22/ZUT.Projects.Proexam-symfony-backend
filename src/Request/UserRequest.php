@@ -7,14 +7,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 class UserRequest
 {
     /**
-    * @Assert\NotBlank()
-    */
-    public $name;
-
-    /**
      * @Assert\NotBlank()
      */
-    public $surname;
+    public $email;
 
     /**
      * @Assert\NotBlank()
@@ -24,6 +19,6 @@ class UserRequest
     /**
      * @Assert\NotBlank()
      */
-    public $email;
+    public $role;
 
 }
