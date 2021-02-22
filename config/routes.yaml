@@ -16,10 +16,10 @@ addUser:
     methods: [ POST ]
     controller: App\Controller\UserController::add
 
-updateUser:
-    path: /user/{id}
-    methods: [PUT]
-    controller: App\Controller\UserController::update
+changePassword:
+    path: /user/password/{id}
+    methods: [POST]
+    controller: App\Controller\UserController::changePassword
 
 deleteUser:
     path: /user/{id}

@@ -12,6 +12,12 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class User implements UserInterface
 {
+    const ROLES = [
+        1 => "ROLE_USER",
+        2 => "ROLE_EXAM",
+        3 => "ROLE_ADMIN",
+    ];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -78,10 +84,14 @@ class User implements UserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
+    }
+
+    public function setRolesByCode(int $roleCode): self
+    {
+        $this->roles[] = self::ROLES[$roleCode];
     }
 
     public function setRoles(array $roles): self
@@ -145,5 +155,10 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public static function samePassword(string $actual, string $new): bool
+    {
+        return $actual === $new;
     }
 }

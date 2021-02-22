@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Request\UserRequest;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -68,25 +69,20 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN")
+     * @ParamConverter("request", converter="fos_rest.request_body")
      */
-    public function add(Request $request): Response
+    public function add(UserRequest $request): Response
     {
-        $data = $request->getContent();
-
-        try {
-            $userRequest = $this->serializer->deserialize($data, UserRequest::class, 'json');
-            $this->validator->validate($userRequest);
-        } catch (NotEncodableValueException $e) {
-
-            return $this->handleView($this->view(['status' => 'bad request'], Response::HTTP_BAD_REQUEST));
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            throw new BadRequestException('Bad Request');
         }
 
         $user = new User();
-        $user->setEmail($userRequest->email);
-        $user->setRoles(['ROLE_USER']);
+        $user->setEmail($request->email);
+        $user->setRolesByCode($request->role);
 
-        $encoded = $this->encoder->encodePassword($user, $userRequest->password);
+        $encoded = $this->encoder->encodePassword($user, $request->password);
         $user->setPassword($encoded);
 
         $this->entityManager->persist($user);
@@ -98,20 +94,17 @@ class UserController extends AbstractFOSRestController
     /**
      * @IsGranted("ROLE_ADMIN")
      * @ParamConverter("user", options={"mapping": {"id": "id"}})
+     * @ParamConverter("request", converter="fos_rest.request_body")
      */
-    public function update(Request $request, User $user): Response
+    public function changePassword(PasswordRequest $request, User $user): Response
     {
-        $data = $request->getContent();
-
-        try {
-            $passwordRequest = $this->serializer->deserialize($data, PasswordRequest::class, 'json');
-            $this->validator->validate($passwordRequest);
-        } catch (NotEncodableValueException $e) {
-
-            return $this->handleView($this->view(['status' => 'bad request'], Response::HTTP_BAD_REQUEST));
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            throw new BadRequestException('Bad Request!');
         }
+        $new = $request->password;
 
-        $encoded = $this->encoder->encodePassword($user, $passwordRequest->password);
+        $encoded = $this->encoder->encodePassword($user, $new);
         $user->setPassword($encoded);
 
         $this->entityManager->persist($user);
