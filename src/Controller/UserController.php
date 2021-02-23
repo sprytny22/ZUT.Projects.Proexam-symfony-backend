@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
+use App\Request\GroupRequest;
+use App\Request\PasswordRequest;
 use App\Request\UserRequest;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
@@ -20,6 +23,9 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class UserController extends AbstractFOSRestController
 {
+    const METHOD_ADD = 'add';
+    const METHOD_REMOVE = 'remove';
+
     /** @var UserRepository $userRepository */
     private $userRepository;
 
@@ -69,6 +75,7 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN")
      * @ParamConverter("request", converter="fos_rest.request_body")
      */
     public function add(UserRequest $request): Response
@@ -84,6 +91,11 @@ class UserController extends AbstractFOSRestController
 
         $encoded = $this->encoder->encodePassword($user, $request->password);
         $user->setPassword($encoded);
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            throw new BadRequestException('Bad Request');
+        }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -118,5 +130,49 @@ class UserController extends AbstractFOSRestController
      */
     public function delete(User $user): Response
     {
+        //TODO: delete
+    }
+
+    /**
+     * @ParamConverter("user", options={"mapping": {"id": "id"}})
+     * @ParamConverter("request", converter="fos_rest.request_body")
+     */
+    public function group(GroupRequest $request, User $user, GroupRepository $groupRepository): Response
+    {
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            throw new BadRequestException('Bad Request!');
+        }
+        $groups = $request->groups;
+        $method = $request->method;
+
+        foreach($groups as $groupId) {
+            $group = $groupRepository->find($groupId);
+            if ($group === null) {
+                throw new BadRequestException('Group not found!');
+            }
+
+            if ($method === self::METHOD_REMOVE) {
+                /** @var array $userGroups */
+                $userGroups = $user->getGroups();
+
+                if (!in_array($groupId, $userGroups)) {
+                    throw new BadRequestException('Group not found!');
+                }
+
+                $user->removeGroup($group);
+            }
+            else if ($method === self::METHOD_ADD) {
+                $user->addGroup($group);
+            }
+            else {
+                throw new BadRequestException('Method not found!');
+            }
+        }
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }
 }

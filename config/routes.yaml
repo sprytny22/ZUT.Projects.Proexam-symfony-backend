@@ -25,3 +25,8 @@ deleteUser:
     path: /user/{id}
     methods: [DELETE]
     controller: App\Controller\UserController::delete
+
+group:
+    path: /user/{id}/group
+    methods: [POST]
+    controller: App\Controller\UserController::group

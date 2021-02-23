@@ -6,9 +6,11 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity("email")
  */
 class User implements UserInterface
 {
@@ -92,6 +94,8 @@ class User implements UserInterface
     public function setRolesByCode(int $roleCode): self
     {
         $this->roles[] = self::ROLES[$roleCode];
+
+        return $this;
     }
 
     public function setRoles(array $roles): self

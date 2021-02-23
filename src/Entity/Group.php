@@ -81,7 +81,7 @@ class Group
         return $this;
     }
 
-    public function removeGroup(User $user): self
+    public function removeUser(User $user): self
     {
         if ($this->users->contains($user)) {
             $this->users->removeElement($user);

@@ -13,6 +13,7 @@ class UserRequest
      * @Assert\Email()
      * @Type("string")
      *
+     *
      * @var string $email
      */
     public $email;
