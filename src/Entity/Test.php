@@ -29,6 +29,48 @@ class Test
      */
     private $name;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $category;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Question", inversedBy="tests")
+     */
+    private $questions;
+
+    /**
+     * @return mixed
+     */
+    public function getQuestions()
+    {
+        return $this->questions;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    /**
+     * @param mixed $category
+     */
+    public function setCategory($category): void
+    {
+        $this->category = $category;
+    }
+
+    /**
+     * @param mixed $questions
+     */
+    public function setQuestions($questions): void
+    {
+        $this->questions = $questions;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

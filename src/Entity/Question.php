@@ -32,9 +32,55 @@ class Question
      */
     private $content;
 
+    /**
+     * @ORM\Column(type="string", length=20, nullable=true)
+     */
+    private $a;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $b;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $c;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $d;
+
+    /**
+     * @ORM\Column(type="string", length=1, nullable=true)
+     */
+    private $correct;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Test", inversedBy="questions")
+     */
+    private $tests;
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTests()
+    {
+        return $this->tests;
+    }
+
+    /**
+     * @param mixed $tests
+     */
+    public function setTests($tests): void
+    {
+        $this->tests = $tests;
     }
 
     public function getUuid(): ?string
@@ -71,5 +117,85 @@ class Question
         $this->content = $content;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getA()
+    {
+        return $this->a;
+    }
+
+    /**
+     * @param mixed $a
+     */
+    public function setA($a): void
+    {
+        $this->a = $a;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getB()
+    {
+        return $this->b;
+    }
+
+    /**
+     * @param mixed $b
+     */
+    public function setB($b): void
+    {
+        $this->b = $b;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getC()
+    {
+        return $this->c;
+    }
+
+    /**
+     * @param mixed $c
+     */
+    public function setC($c): void
+    {
+        $this->c = $c;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getD()
+    {
+        return $this->d;
+    }
+
+    /**
+     * @param mixed $d
+     */
+    public function setD($d): void
+    {
+        $this->d = $d;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCorrect()
+    {
+        return $this->correct;
+    }
+
+    /**
+     * @param mixed $correct
+     */
+    public function setCorrect($correct): void
+    {
+        $this->correct = $correct;
     }
 }
