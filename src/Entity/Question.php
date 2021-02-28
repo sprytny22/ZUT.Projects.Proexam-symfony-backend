@@ -198,4 +198,15 @@ class Question
     {
         $this->correct = $correct;
     }
+
+    public function toResponse(): array
+    {
+        return [
+            'title' => $this->getContent(),
+            'A' => $this->getA(),
+            'B' => $this->getB(),
+            'C' => $this->getC(),
+            'D' => $this->getD()
+        ];
+    }
 }
