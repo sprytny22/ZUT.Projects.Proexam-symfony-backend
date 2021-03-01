@@ -30,3 +30,58 @@ group:
     path: /user/{id}/group
     methods: [POST]
     controller: App\Controller\UserController::group
+
+showExam:
+    path: /exam/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::showExam
+
+showExams:
+    path: /exams
+    methods: [GET]
+    controller: App\Controller\ExamController::showExams
+
+confirmExam:
+    path: /exam/confirm/{id}
+    methods: [PUT]
+    controller: App\Controller\ExamController::confirmExam
+
+startExam:
+    path: /exam/start/{id}
+    methods: [PUT]
+    controller: App\Controller\ExamController::startExam
+
+addExam:
+    path: /exam/add
+    methods: [POST]
+    controller: App\Controller\ExamController::addExam
+
+showTests:
+    path: /tests
+    methods: [GET]
+    controller: App\Controller\TestController::showTests
+
+showTest:
+    path: /test/{id}
+    methods: [GET]
+    controller: App\Controller\TestController::showTest
+
+addTest:
+    path: /test
+    methods: [POST]
+    controller: App\Controller\TestController::addTest
+
+showQuestions:
+    path: /questions
+    methods: [GET]
+    controller: App\Controller\TestController::showQuestions
+
+showQuestion:
+    path: /question/{id}
+    methods: [GET]
+    controller: App\Controller\TestController::showQuestion
+
+addQuestion:
+    path: /question
+    methods: [POST]
+    controller: App\Controller\TestController::addQuestion

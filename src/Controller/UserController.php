@@ -3,12 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Repository\GroupRepository;
 use App\Repository\UserRepository;
-use App\Request\GroupRequest;
 use App\Request\PasswordRequest;
 use App\Request\UserRequest;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -145,6 +144,10 @@ class UserController extends AbstractFOSRestController
         }
         $groups = $request->groups;
         $method = $request->method;
+
+        if ($groups === null) {
+            throw new \RuntimeException('null given');
+        }
 
         foreach($groups as $groupId) {
             $group = $groupRepository->find($groupId);

@@ -8,11 +8,14 @@ use App\Repository\ExamRepository;
 use App\Repository\TestRepository;
 use App\Repository\UserRepository;
 use App\Request\ExamRequest;
+use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 
 class ExamController extends AbstractFOSRestController
@@ -43,6 +46,10 @@ class ExamController extends AbstractFOSRestController
     public function showExams(ExamRepository $examRepository): Response
     {
         $exams = $examRepository->findAll();
+
+        if ($exams === null) {
+            throw new \RuntimeException('ERRUR');
+        }
 
         $rows = [];
         foreach($exams as $exam) {

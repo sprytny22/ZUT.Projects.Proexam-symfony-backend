@@ -18,12 +18,12 @@ class Question
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=10)
+     * @ORM\Column(type="string", length=255)
      */
     private $uuid;
 
     /**
-     * @ORM\Column(type="string", length=10)
+     * @ORM\Column(type="string", length=255)
      */
     private $type;
 
@@ -53,34 +53,13 @@ class Question
     private $d;
 
     /**
-     * @ORM\Column(type="string", length=1, nullable=true)
+     * @ORM\Column(type="string", length=1)
      */
     private $correct;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Test", inversedBy="questions")
-     */
-    private $tests;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTests()
-    {
-        return $this->tests;
-    }
-
-    /**
-     * @param mixed $tests
-     */
-    public function setTests($tests): void
-    {
-        $this->tests = $tests;
     }
 
     public function getUuid(): ?string

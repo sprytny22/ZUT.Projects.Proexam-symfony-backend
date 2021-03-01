@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ExamRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -43,9 +44,14 @@ class Exam
     private $users;
 
     /**
-     * @Column(type="datetime")
+     * @ORM\Column(type="datetime")
      */
     private $startDataTime;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $endDataTime;
 
     /**
      * @return mixed
@@ -142,11 +148,6 @@ class Exam
     {
         $this->endDataTime = $endDataTime;
     }
-
-    /**
-     * @Column(type="datetime")
-     */
-    private $endDataTime;
 
     public function getId(): ?int
     {

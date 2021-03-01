@@ -70,11 +70,4 @@ class QuestionRequest
      */
     public $correct;
 
-    /**
-     * @Type("array")
-     *
-     * @var array $tests
-     */
-    public $tests = [];
-
 }

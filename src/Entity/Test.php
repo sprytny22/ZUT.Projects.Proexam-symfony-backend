@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\TestRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
@@ -35,16 +37,24 @@ class Test
     private $category;
 
     /**
+     * @var Collection
      * @ORM\ManyToMany(targetEntity="App\Entity\Question", inversedBy="tests")
      */
     private $questions;
 
-    /**
-     * @return mixed
-     */
-    public function getQuestions()
+    public function __construct()
+    {
+        $this->questions = new ArrayCollection();
+    }
+
+    public function getQuestions(): ArrayCollection
     {
         return $this->questions;
+    }
+
+    public function setQuestions(array $questions): void
+    {
+        $this->questions = $questions;
     }
 
     /**
@@ -61,14 +71,6 @@ class Test
     public function setCategory($category): void
     {
         $this->category = $category;
-    }
-
-    /**
-     * @param mixed $questions
-     */
-    public function setQuestions($questions): void
-    {
-        $this->questions = $questions;
     }
 
     public function getId(): ?int

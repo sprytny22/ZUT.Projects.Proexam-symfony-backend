@@ -5,11 +5,9 @@ namespace App\Controller;
 use App\Entity\Question;
 use App\Entity\Test;
 use App\Entity\User;
-use App\Repository\GroupRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TestRepository;
 use App\Repository\UserRepository;
-use App\Request\GroupRequest;
 use App\Request\PasswordRequest;
 use App\Request\QuestionRequest;
 use App\Request\TestRequest;
@@ -21,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -29,9 +28,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class TestController extends AbstractFOSRestController
 {
-    /**
-     * @IsGranted("ROLE_ADMIN", "ROLE_EXAMER")
-     */
     public function showTests(TestRepository $testRepository): Response
     {
         $tests = $testRepository->findAll();
@@ -52,6 +48,10 @@ class TestController extends AbstractFOSRestController
 
     /**
      * @ParamConverter("request", converter="fos_rest.request_body")
+     * @param TestRequest $request
+     * @param ValidatorInterface $validator
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function addTest(TestRequest $request, ValidatorInterface $validator, EntityManagerInterface $entityManager)
     {
@@ -64,6 +64,7 @@ class TestController extends AbstractFOSRestController
         $test->setName($request->name);
         $test->setCategory($request->category);
         $test->setQuestions($request->questions);
+        $test->setUuid(Uuid::v4());
 
         $entityManager->persist($test);
         $entityManager->flush();
@@ -71,9 +72,6 @@ class TestController extends AbstractFOSRestController
         return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }
 
-    /**
-     * @IsGranted("ROLE_ADMIN", "ROLE_EXAMER")
-     */
     public function showQuestions(QuestionRepository $questionRepository): Response
     {
         $questions = $questionRepository->findAll();
@@ -92,6 +90,13 @@ class TestController extends AbstractFOSRestController
         return $this->handleView($this->view($question, Response::HTTP_OK));
     }
 
+    /**
+     * @ParamConverter("request", converter="fos_rest.request_body")
+     * @param QuestionRequest $request
+     * @param ValidatorInterface $validator
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
     public function addQuestion(QuestionRequest $request, ValidatorInterface $validator, EntityManagerInterface $entityManager)
     {
         $errors = $validator->validate($request);
@@ -102,13 +107,13 @@ class TestController extends AbstractFOSRestController
         $question = new Question();
         $question->setType($request->type);
         $question->setContent($request->content);
+        $question->setUuid(Uuid::v4());
 
         $question->setA($request->a);
         $question->setB($request->b);
         $question->setC($request->c);
         $question->setD($request->d);
-
-        $question->setTests($request->tests);
+        $question->setCorrect($request->correct);
 
         $entityManager->persist($question);
         $entityManager->flush();
