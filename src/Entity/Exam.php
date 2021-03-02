@@ -120,7 +120,7 @@ class Exam
     /**
      * @return mixed
      */
-    public function getStartDataTime()
+    public function getStartDataTime(): DateTime
     {
         return $this->startDataTime;
     }
@@ -136,7 +136,7 @@ class Exam
     /**
      * @return mixed
      */
-    public function getEndDataTime()
+    public function getEndDataTime(): \DateTime
     {
         return $this->endDataTime;
     }
@@ -144,7 +144,7 @@ class Exam
     /**
      * @param mixed $endDataTime
      */
-    public function setEndDataTime($endDataTime): void
+    public function setEndDataTime(\DateTime $endDataTime): void
     {
         $this->endDataTime = $endDataTime;
     }

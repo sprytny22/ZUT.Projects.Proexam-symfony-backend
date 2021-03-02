@@ -181,7 +181,7 @@ class Question
     public function toResponse(): array
     {
         return [
-            'title' => $this->getContent(),
+            'content' => $this->getContent(),
             'A' => $this->getA(),
             'B' => $this->getB(),
             'C' => $this->getC(),

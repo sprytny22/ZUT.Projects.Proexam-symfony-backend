@@ -28,6 +28,32 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class TestController extends AbstractFOSRestController
 {
+    /** @var ValidatorInterface $validator */
+    private $validator;
+
+    /** @var EntityManagerInterface $entityManager */
+    private $entityManager;
+
+    /** @var TestRepository $testRepository */
+    private $testRepository;
+
+    /** @var QuestionRepository $questionRepository */
+    private $questionRepository;
+
+    public function __construct
+    (
+        ValidatorInterface $validator,
+        EntityManagerInterface $entityManager,
+        TestRepository $testRepository,
+        QuestionRepository $questionRepository
+    )
+    {
+        $this->validator = $validator;
+        $this->entityManager = $entityManager;
+        $this->testRepository = $testRepository;
+        $this->questionRepository = $questionRepository;
+    }
+
     public function showTests(TestRepository $testRepository): Response
     {
         $tests = $testRepository->findAll();
@@ -49,25 +75,30 @@ class TestController extends AbstractFOSRestController
     /**
      * @ParamConverter("request", converter="fos_rest.request_body")
      * @param TestRequest $request
-     * @param ValidatorInterface $validator
-     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function addTest(TestRequest $request, ValidatorInterface $validator, EntityManagerInterface $entityManager)
+    public function addTest(TestRequest $request): Response
     {
-        $errors = $validator->validate($request);
+        $errors = $this->validator->validate($request);
         if (count($errors) > 0) {
             throw new BadRequestException('Bad Request!');
+        }
+
+        $questionIds = $request->questions;
+
+        $questions = $this->questionRepository->findBy(['id' => $questionIds]);
+        if($questions === null) {
+            throw new \RuntimeException('ERRUR');
         }
 
         $test = new Test();
         $test->setName($request->name);
         $test->setCategory($request->category);
-        $test->setQuestions($request->questions);
+        $test->setQuestions($questions);
         $test->setUuid(Uuid::v4());
 
-        $entityManager->persist($test);
-        $entityManager->flush();
+        $this->entityManager->persist($test);
+        $this->entityManager->flush();
 
         return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }

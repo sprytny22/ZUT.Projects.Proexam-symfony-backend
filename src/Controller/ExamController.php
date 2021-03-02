@@ -8,6 +8,7 @@ use App\Repository\ExamRepository;
 use App\Repository\TestRepository;
 use App\Repository\UserRepository;
 use App\Request\ExamRequest;
+use DateTime;
 use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
 use http\Exception\RuntimeException;
@@ -34,11 +35,13 @@ class ExamController extends AbstractFOSRestController
 
     public function __construct(
         ValidatorInterface $validator,
+        EntityManagerInterface $entityManager,
         TestRepository $testRepository,
         UserRepository $userRepository
     )
     {
         $this->validator = $validator;
+        $this->entityManager = $entityManager;
         $this->testRepository = $testRepository;
         $this->userRepository = $userRepository;
     }
@@ -83,7 +86,7 @@ class ExamController extends AbstractFOSRestController
             'status' => $exam->getStatus()
         ];
 
-        return $this->handleView($this->view($exam, Response::HTTP_OK));
+        return $this->handleView($this->view($row, Response::HTTP_OK));
     }
 
     /**
@@ -101,7 +104,7 @@ class ExamController extends AbstractFOSRestController
         $this->entityManager->persist($exam);
         $this->entityManager->flush();
 
-        return $this->handleView($this->view('OK', Response::HTTP_OK));
+        return $this->handleView($this->view(['status'=> 'OK'], Response::HTTP_OK));
     }
 
     /**
@@ -111,17 +114,31 @@ class ExamController extends AbstractFOSRestController
      */
     public function startExam(Exam $exam): Response
     {
-        $users = $exam->getUsers();
-        $user = $this->getUser();
+//        $users = $exam->getUsers();
+//        $user = $this->getUser();
 
-        if (!in_array($user, $users) && $this->isGranted('ROLE_USER')) {
-            throw new BadRequestException('Bad Request!');
+//        if (!in_array($user, $users) && $this->isGranted('ROLE_USER')) {
+//            throw new BadRequestException('Bad Request!');
+//        }
+
+        if ($exam->getStatus() !== Exam::STATUS_CONFIRMED) {
+            throw new BadRequestException('Need confirm!');
         }
+
+        $exam->setStatus(Exam::STATUS_PENDING);
+
+        $this->entityManager->persist($exam);
+        $this->entityManager->flush();
 
         $response = $exam->toResponse();
         return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
+    /**
+     * @ParamConverter("request", converter="fos_rest.request_body")
+     * @param ExamRequest $request
+     * @return Response
+     */
     public function addExam(ExamRequest $request): Response
     {
         $errors = $this->validator->validate($request);
@@ -129,20 +146,25 @@ class ExamController extends AbstractFOSRestController
             throw new BadRequestException('Bad Request!');
         }
 
+        $userIds = $request->users;
+        $testId = $request->test;
+
         /** @var Test $test */
-        $test = $this->testRepository->find($request->testId);
-        $users = $this->userRepository->findBy($request->users);
+        $test = $this->testRepository->find($request->test);
+        $users = $this->userRepository->findBy(['id' => $userIds]);
 
         $exam = new Exam();
+        $exam->setTitle($request->title);
+        $exam->setStatus("NON_CONFIRM");
         $exam->setTest($test);
         $exam->setUsers($users);
 
-        $exam->setStartDataTime($request->startDataTime);
-        $exam->setEndDataTime($request->endDataTime);
+        $exam->setStartDataTime(\DateTime::createFromFormat(\DateTime::ATOM, $request->start));
+        $exam->setEndDataTime(\DateTime::createFromFormat(\DateTime::ATOM, $request->end));
 
-        $this->entityManager->persist($test);
+        $this->entityManager->persist($exam);
         $this->entityManager->flush();
 
-        return $this->handleView($this->view('OK', Response::HTTP_OK));
+        return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }
 }

@@ -52,7 +52,7 @@ startExam:
     controller: App\Controller\ExamController::startExam
 
 addExam:
-    path: /exam/add
+    path: /exam
     methods: [POST]
     controller: App\Controller\ExamController::addExam
 

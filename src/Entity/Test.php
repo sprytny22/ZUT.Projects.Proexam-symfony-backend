@@ -22,7 +22,7 @@ class Test
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=10, unique=true)
+     * @ORM\Column(type="string", length=255, unique=true)
      */
     private $uuid;
 
@@ -47,14 +47,14 @@ class Test
         $this->questions = new ArrayCollection();
     }
 
-    public function getQuestions(): ArrayCollection
+    public function getQuestions(): Collection
     {
         return $this->questions;
     }
 
     public function setQuestions(array $questions): void
     {
-        $this->questions = $questions;
+        $this->questions = new ArrayCollection($questions);;
     }
 
     /**

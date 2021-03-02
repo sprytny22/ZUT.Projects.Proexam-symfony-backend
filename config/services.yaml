@@ -19,7 +19,6 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
-            - '../src/Repository/'
             - '../src/Kernel.php'
             - '../src/Tests/'
 
@@ -28,17 +27,6 @@ services:
     App\Controller\:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
-
-    #services:
-    App\Repository\UserRepository:
-        arguments:
-            - '@Doctrine\Common\Persistence\ManagerRegistry'
-            - App\Entity\User
-
-    App\Repository\TestRepository:
-        arguments:
-            - '@Doctrine\Common\Persistence\ManagerRegistry'
-            - App\Entity\Test
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

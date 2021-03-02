@@ -2,7 +2,6 @@
 
 namespace App\Request;
 
-use DateTime;
 use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation\Type;
 
@@ -13,35 +12,43 @@ class ExamRequest
      * @Assert\NotNull()
      * @Type("integer")
      *
-     * @var int $testId
+     * @var int $test
      */
-    public $testId;
+    public $test;
 
     /**
      * @Assert\NotBlank()
      * @Assert\NotNull()
-     * @Type("DataTime")
+     * @Type("string")
      *
-     * @var DateTime $startDataTime
+     * @var string $title
      */
-    public $startDataTime;
+    public $title;
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      * @Type("array")
      *
-     * @var array $users
+     * @var arrat $users
      */
-    public $users;
+    public $users = [];
 
     /**
      * @Assert\NotBlank()
      * @Assert\NotNull()
-     * @Type("DataTime")
+     * @Type("string")
      *
-     * @var DateTime $endDataTime
+     * @var string $start
      */
-    public $endDataTime;
+    public $start;
+
+    /**
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
+     * @Type("string")
+     *
+     * @var string $end
+     */
+    public $end;
+
 
 }

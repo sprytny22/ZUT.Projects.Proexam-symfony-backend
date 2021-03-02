@@ -74,7 +74,6 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN")
      * @ParamConverter("request", converter="fos_rest.request_body")
      */
     public function add(UserRequest $request): Response
