@@ -137,6 +137,7 @@ class TestController extends AbstractFOSRestController
 
         $question = new Question();
         $question->setType($request->type);
+        $question->setCategory($request->category);
         $question->setContent($request->content);
         $question->setUuid(Uuid::v4());
 

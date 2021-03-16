@@ -28,6 +28,11 @@ class Question
     private $type;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $category;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private $content;
@@ -53,7 +58,7 @@ class Question
     private $d;
 
     /**
-     * @ORM\Column(type="string", length=1)
+     * @ORM\Column(type="string", length=1, nullable=true)
      */
     private $correct;
 
@@ -84,6 +89,16 @@ class Question
         $this->type = $type;
 
         return $this;
+    }
+
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?string $category): void
+    {
+        $this->category = $category;
     }
 
     public function getContent(): ?string
@@ -182,6 +197,9 @@ class Question
     {
         return [
             'content' => $this->getContent(),
+            'type' => $this->getType(),
+            'category' => $this->getCategory(),
+            'uuid' => $this->getUuid(),
             'A' => $this->getA(),
             'B' => $this->getB(),
             'C' => $this->getC(),

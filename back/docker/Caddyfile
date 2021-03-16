@@ -1,0 +1,33 @@
+# Learn how to configure the Mercure.rocks Hub on https://mercure.rocks/docs/hub/config
+{
+    # Debug mode (disable it in production!)
+    debug
+    # HTTP/3 support
+    experimental_http3
+}
+
+:80
+
+log
+
+route {
+    redir / /.well-known/mercure/ui/
+    encode gzip
+
+    mercure {
+        # Enable the demo endpoint (disable it in production!)
+        demo
+        # Publisher JWT key
+        publisher_jwt aVerySecretKey
+        # Subscriber JWT key
+        subscriber_jwt aVerySecretKey
+        # CORS
+        cors_origins http://localhost:8080
+        # Allow anonymous subscribers (double-check that it's what you want)
+        anonymous
+        # Enable the subscription API (double-check that it's what you want)
+        subscriptions
+    }
+
+    respond "Not Found" 404
+}

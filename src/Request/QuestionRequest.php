@@ -21,6 +21,15 @@ class QuestionRequest
      * @Assert\NotNull()
      * @Type("string")
      *
+     * @var string $type
+     */
+    public $category;
+
+    /**
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
+     * @Type("string")
+     *
      * @var string $content
      */
     public $content;

@@ -1,87 +1,97 @@
 api_login_check:
     path: /api/login_check
 
+details:
+    path: /api/details
+    methods: [GET]
+    controller: App\Controller\UserController::details
+
 showUsers:
     path: /api/users
     methods: [GET]
     controller: App\Controller\UserController::showAll
 
 showUser:
-    path: /user/{id}
+    path: /api/user/{id}
     methods: [GET]
     controller: App\Controller\UserController::show
 
 addUser:
-    path: /user
+    path: /api/user
     methods: [ POST ]
     controller: App\Controller\UserController::add
 
 changePassword:
-    path: /user/password/{id}
+    path: /api/user/password/{id}
     methods: [POST]
     controller: App\Controller\UserController::changePassword
 
 deleteUser:
-    path: /user/{id}
+    path: /api/user/{id}
     methods: [DELETE]
     controller: App\Controller\UserController::delete
 
 group:
-    path: /user/{id}/group
+    path: /api/user/{id}/group
     methods: [POST]
     controller: App\Controller\UserController::group
 
 showExam:
-    path: /exam/{id}
+    path: /api/exam/{id}
     methods: [GET]
     controller: App\Controller\ExamController::showExam
 
 showExams:
-    path: /exams
+    path: /api/exams
     methods: [GET]
     controller: App\Controller\ExamController::showExams
 
 confirmExam:
-    path: /exam/confirm/{id}
+    path: /api/exam/confirm/{id}
     methods: [PUT]
     controller: App\Controller\ExamController::confirmExam
 
 startExam:
-    path: /exam/start/{id}
-    methods: [PUT]
+    path: /api/exam/start/{id}
+    methods: [GET]
     controller: App\Controller\ExamController::startExam
 
+joinExam:
+    path: /api/exam/join/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::joinExam
+
 addExam:
-    path: /exam
+    path: /api/exam
     methods: [POST]
     controller: App\Controller\ExamController::addExam
 
 showTests:
-    path: /tests
+    path: /api/tests
     methods: [GET]
     controller: App\Controller\TestController::showTests
 
 showTest:
-    path: /test/{id}
+    path: /api/test/{id}
     methods: [GET]
     controller: App\Controller\TestController::showTest
 
 addTest:
-    path: /test
+    path: /api/test
     methods: [POST]
     controller: App\Controller\TestController::addTest
 
 showQuestions:
-    path: /questions
+    path: /api/questions
     methods: [GET]
     controller: App\Controller\TestController::showQuestions
 
 showQuestion:
-    path: /question/{id}
+    path: /api/question/{id}
     methods: [GET]
     controller: App\Controller\TestController::showQuestion
 
 addQuestion:
-    path: /question
+    path: /api/question
     methods: [POST]
     controller: App\Controller\TestController::addQuestion

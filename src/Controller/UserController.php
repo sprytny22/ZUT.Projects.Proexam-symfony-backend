@@ -56,8 +56,23 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN", "ROLE_EXAMER")
+     * @return Response
      */
+    public function details(): Response
+    {
+        $user = $this->getUser();
+        if ($user === null) {
+            throw new BadRequestException('Bad Request');
+        }
+
+        $details = [
+          'user' => $user->getUsername(),
+          'roles' => $user->getRoles(),
+        ];
+
+        return $this->handleView($this->view($details, Response::HTTP_OK));
+    }
+
     public function showAll(): Response
     {
         $users = $this->userRepository->findAll();

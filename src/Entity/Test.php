@@ -102,19 +102,17 @@ class Test
 
     public function toResponse(): array
     {
-        $test = [];
-        $test[] = [
-          'title' => $this->getName(),
-          'uuid' =>  $this->getUuid()
-        ];
-
         $questions = [];
         /** @var Question $question */
         foreach($this->getQuestions() as $question){
             $questions[] = $question->toResponse();
         }
 
-        $test[] = $questions;
+        $test = [
+            'title' => $this->getName(),
+            'uuid' =>  $this->getUuid(),
+            'questions' => $questions
+        ];
 
         return $test;
     }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Exam;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -19,6 +20,16 @@ class ExamRepository extends ServiceEntityRepository
         parent::__construct($registry, Exam::class);
     }
 
+    public function findByUser(User $user)
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.users', 'u')
+            ->where('u = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
     // /**
     //  * @return Exam[] Returns an array of Exam objects
     //  */

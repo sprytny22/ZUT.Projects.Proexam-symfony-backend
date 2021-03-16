@@ -4,19 +4,19 @@ namespace App\Controller;
 
 use App\Entity\Exam;
 use App\Entity\Test;
+use App\Entity\User;
 use App\Repository\ExamRepository;
 use App\Repository\TestRepository;
 use App\Repository\UserRepository;
 use App\Request\ExamRequest;
 use DateTime;
-use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 
 class ExamController extends AbstractFOSRestController
@@ -48,10 +48,16 @@ class ExamController extends AbstractFOSRestController
 
     public function showExams(ExamRepository $examRepository): Response
     {
-        $exams = $examRepository->findAll();
-
-        if ($exams === null) {
+        /** @var User $user */
+        $user = $this->getUser();
+        if ($user === null) {
             throw new \RuntimeException('ERRUR');
+        }
+
+        $exams = $examRepository->findByUser($user);
+
+        if ($this->isGranted('ROLE_EXAM')) {
+            $exams = $examRepository->findALL();
         }
 
         $rows = [];
@@ -108,27 +114,59 @@ class ExamController extends AbstractFOSRestController
     }
 
     /**
+     * @IsGranted("ROLE_EXMER")
+     * @ParamConverter("exam", options={"mapping": {"id": "id"}})
+     * @param Exam $exam
+     * @return Response
+     */
+    public function watchExam(Exam $exam): Response
+    {
+
+    }
+
+    /**
+     * @IsGranted("ROLE_EXMER")
      * @ParamConverter("exam", options={"mapping": {"id": "id"}})
      * @param Exam $exam
      * @return Response
      */
     public function startExam(Exam $exam): Response
     {
-//        $users = $exam->getUsers();
 //        $user = $this->getUser();
-
-//        if (!in_array($user, $users) && $this->isGranted('ROLE_USER')) {
+//        $users = $exam->getUsers();
+//
+//        if (!in_array($user, $users)) {
 //            throw new BadRequestException('Bad Request!');
 //        }
-
-        if ($exam->getStatus() !== Exam::STATUS_CONFIRMED) {
-            throw new BadRequestException('Need confirm!');
-        }
+//
+//        if ($exam->getStatus() !== Exam::STATUS_CONFIRMED) {
+//            throw new BadRequestException('Need confirm!');
+//        }
 
         $exam->setStatus(Exam::STATUS_PENDING);
 
         $this->entityManager->persist($exam);
         $this->entityManager->flush();
+
+        return $this->handleView($this->view('OK', Response::HTTP_OK));
+    }
+
+    /**
+     * @IsGranted("ROLE_USER")
+     * @return Response
+     */
+    public function joinExam(Exam $exam): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$exam->hasUser($user)) {
+            throw new BadRequestException('Bad Request!');
+        }
+
+        if ($exam->getStatus() !== Exam::STATUS_PENDING) {
+            throw new BadRequestException('Need confirm!');
+        }
 
         $response = $exam->toResponse();
         return $this->handleView($this->view($response, Response::HTTP_OK));
@@ -138,6 +176,7 @@ class ExamController extends AbstractFOSRestController
      * @ParamConverter("request", converter="fos_rest.request_body")
      * @param ExamRequest $request
      * @return Response
+     * @throws \Exception
      */
     public function addExam(ExamRequest $request): Response
     {
@@ -159,8 +198,8 @@ class ExamController extends AbstractFOSRestController
         $exam->setTest($test);
         $exam->setUsers($users);
 
-        $exam->setStartDataTime(\DateTime::createFromFormat(\DateTime::ATOM, $request->start));
-        $exam->setEndDataTime(\DateTime::createFromFormat(\DateTime::ATOM, $request->end));
+        $exam->setStartDataTime(new DateTime($request->start));
+        $exam->setEndDataTime(new DateTime($request->end));
 
         $this->entityManager->persist($exam);
         $this->entityManager->flush();

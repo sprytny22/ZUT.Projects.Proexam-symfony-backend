@@ -128,7 +128,7 @@ class Exam
     /**
      * @param mixed $startDataTime
      */
-    public function setStartDataTime($startDataTime): void
+    public function setStartDataTime(\DateTime $startDataTime): void
     {
         $this->startDataTime = $startDataTime;
     }
@@ -152,6 +152,17 @@ class Exam
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function hasUser(User $user): bool
+    {
+        foreach ($this->getUsers() as $examUser) {
+            if ($user === $examUser) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function toResponse(): array
