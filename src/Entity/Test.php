@@ -54,7 +54,7 @@ class Test
 
     public function setQuestions(array $questions): void
     {
-        $this->questions = new ArrayCollection($questions);;
+        $this->questions = new ArrayCollection($questions);
     }
 
     /**

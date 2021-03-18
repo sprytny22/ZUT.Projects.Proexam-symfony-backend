@@ -32,7 +32,9 @@
         "symfony/twig-bundle": "5.2.*",
         "symfony/uid": "5.2.*",
         "symfony/validator": "5.2.*",
-        "symfony/yaml": "5.2.*"
+        "symfony/web-link": "5.2.*",
+        "symfony/yaml": "5.2.*",
+      "ext-json": "*"
     },
     "config": {
         "optimize-autoloader": true,

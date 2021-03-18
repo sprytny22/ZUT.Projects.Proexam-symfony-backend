@@ -56,10 +56,25 @@ startExam:
     methods: [GET]
     controller: App\Controller\ExamController::startExam
 
+watchExam:
+    path: /api/exam/watch/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::watchExam
+
 joinExam:
     path: /api/exam/join/{id}
     methods: [GET]
     controller: App\Controller\ExamController::joinExam
+
+updateResult:
+    path: /api/exam/result/{id}
+    methods: [POST]
+    controller: App\Controller\ExamController::updateResult
+
+closeResult:
+    path: /api/exam/close/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::closeResult
 
 addExam:
     path: /api/exam

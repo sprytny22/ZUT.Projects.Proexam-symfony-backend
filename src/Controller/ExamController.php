@@ -2,22 +2,29 @@
 
 namespace App\Controller;
 
+use App\Entity\Answer;
 use App\Entity\Exam;
+use App\Entity\Result;
 use App\Entity\Test;
 use App\Entity\User;
 use App\Repository\ExamRepository;
+use App\Repository\ResultRepository;
 use App\Repository\TestRepository;
 use App\Repository\UserRepository;
 use App\Request\ExamRequest;
+use App\Request\UpdateRequest;
+use App\Service\ExamUpdateService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
+use Symfony\Component\Mercure\PublisherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-
+use Symfony\Component\WebLink\Link;
 
 class ExamController extends AbstractFOSRestController
 {
@@ -48,16 +55,17 @@ class ExamController extends AbstractFOSRestController
 
     public function showExams(ExamRepository $examRepository): Response
     {
-        /** @var User $user */
-        $user = $this->getUser();
-        if ($user === null) {
-            throw new \RuntimeException('ERRUR');
+        if ($this->isGranted('ROLE_EXAMER')) {
+            $exams = $examRepository->findAll();
         }
+        else {
+            /** @var User $user */
+            $user = $this->getUser();
+            if ($user === null) {
+                throw new BadRequestException('Need confirm!');
+            }
 
-        $exams = $examRepository->findByUser($user);
-
-        if ($this->isGranted('ROLE_EXAM')) {
-            $exams = $examRepository->findALL();
+            $exams = $examRepository->findByUser($user);
         }
 
         $rows = [];
@@ -110,22 +118,33 @@ class ExamController extends AbstractFOSRestController
         $this->entityManager->persist($exam);
         $this->entityManager->flush();
 
+
         return $this->handleView($this->view(['status'=> 'OK'], Response::HTTP_OK));
     }
 
     /**
-     * @IsGranted("ROLE_EXMER")
+     * @IsGranted("ROLE_EXAMER")
      * @ParamConverter("exam", options={"mapping": {"id": "id"}})
      * @param Exam $exam
+     * @param Request $request
      * @return Response
      */
-    public function watchExam(Exam $exam): Response
+    public function watchExam(Exam $exam, Request $request): Response
     {
+        if ($exam->getStatus() !== Exam::STATUS_PENDING) {
+            throw new BadRequestException('Need confirm!');
+        }
 
+        $hubUrl = $this->getParameter('mercure.default_hub');
+
+        $this->addLink($request, new Link('mercure', $hubUrl));
+
+        $response = $exam->toResponse();
+        return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
     /**
-     * @IsGranted("ROLE_EXMER")
+     * @IsGranted("ROLE_EXAMER")
      * @ParamConverter("exam", options={"mapping": {"id": "id"}})
      * @param Exam $exam
      * @return Response
@@ -153,12 +172,20 @@ class ExamController extends AbstractFOSRestController
 
     /**
      * @IsGranted("ROLE_USER")
+     * @param Exam $exam
      * @return Response
      */
-    public function joinExam(Exam $exam): Response
+    public function joinExam(Exam $exam, ResultRepository $resultRepository): Response
     {
         /** @var User $user */
         $user = $this->getUser();
+
+        /** @var Result $found */
+        $found = $resultRepository->findCurrentResult($user, $exam);
+
+        if ($found && $found[0]->getStatus() === Result::STATUS_CLOSE) {
+            throw new BadRequestException('Egzamin zakonczony!');
+        }
 
         if (!$exam->hasUser($user)) {
             throw new BadRequestException('Bad Request!');
@@ -168,8 +195,99 @@ class ExamController extends AbstractFOSRestController
             throw new BadRequestException('Need confirm!');
         }
 
-        $response = $exam->toResponse();
+        if ($found) {
+            $response = $found->toJoinResponse();
+            return $this->handleView($this->view($response, Response::HTTP_OK));
+        }
+
+        $result = new Result();
+        $result->setUser($this->getUser());
+        $result->setExam($exam);
+
+        $answers = [];
+
+        $questions = $exam->getTest()->getQuestions()->toArray();
+
+        foreach($questions as $question)
+        {
+            $answer = new Answer();
+            $answer->setUser($user);
+            $answer->setQuestion($question);
+            $this->entityManager->persist($answer);
+            $this->entityManager->flush();
+
+            $answers[] = $answer;
+        }
+
+        $result->setAnswers($answers);
+
+        $this->entityManager->persist($result);
+        $this->entityManager->flush();
+
+
+        $response = $result->toJoinResponse();
         return $this->handleView($this->view($response, Response::HTTP_OK));
+    }
+
+    /**
+     * @ParamConverter("result", options={"mapping": {"id": "id"}})
+     * @param Result $result
+     * @return Response
+     */
+    public function closeResult(Result $result): Response
+    {
+        if ($result->getUser() !== $this->getUser()) {
+            throw new BadRequestException('Bad Request!');
+        }
+
+        $result->setStatus(Result::STATUS_CLOSE);
+
+        $this->entityManager->persist($result);
+        $this->entityManager->flush();
+
+        return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
+    }
+
+    /**
+     * @ParamConverter("result", options={"mapping": {"id": "id"}})
+     * @param Request $request
+     * @param Result $result
+     * @return Response
+     */
+    public function updateResult(Request $request, Result $result): Response
+    {
+        $user = $this->getUser();
+        if ($result->getUser() !== $user) {
+            throw new BadRequestException('Bad Request!');
+        }
+
+        if ($result->getStatus() === Result::STATUS_CLOSE) {
+            return $this->handleView($this->view(['status' => 'closed'], Response::HTTP_OK));
+        }
+
+        $data = json_decode($request->getContent());
+        $answers = $result->getAnswers()->toArray();
+
+        /** @var Answer $answer */
+        foreach ($answers as $answer) {
+            foreach ($data as $datum){
+                if ($answer->getId() === $datum->answerId) {
+                    if($datum->answer === 'None') {
+                        continue;
+                    }
+                    if ($answer->getQuestion()->getType() === 'open') {
+                        $answer->setOpenAnswer($datum->answer);
+                    } else {
+                        $answer->setCloseAnswer($datum->answer);
+                    }
+                }
+            }
+            $this->entityManager->persist($answer);
+            $this->entityManager->flush();
+        }
+
+
+        return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }
 
     /**

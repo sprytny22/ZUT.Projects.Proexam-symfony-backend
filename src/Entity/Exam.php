@@ -170,7 +170,7 @@ class Exam
         return [
             'id' => $this->getId(),
             'status' => $this->getStatus(),
-            'test' => $this->test->toResponse()
+            'test' => $this->test->toResponse(),
         ];
     }
 }
