@@ -16,7 +16,7 @@ class User implements UserInterface
 {
     const ROLES = [
         1 => "ROLE_USER",
-        2 => "ROLE_EXAM",
+        2 => "ROLE_EXAMER",
         3 => "ROLE_ADMIN",
     ];
 

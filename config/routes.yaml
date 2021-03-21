@@ -17,7 +17,7 @@ showUser:
     controller: App\Controller\UserController::show
 
 addUser:
-    path: /api/user
+    path: /user
     methods: [ POST ]
     controller: App\Controller\UserController::add
 

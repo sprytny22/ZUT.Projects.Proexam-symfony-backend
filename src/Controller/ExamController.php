@@ -196,7 +196,7 @@ class ExamController extends AbstractFOSRestController
         }
 
         if ($found) {
-            $response = $found->toJoinResponse();
+            $response = $found[0]->toJoinResponse();
             return $this->handleView($this->view($response, Response::HTTP_OK));
         }
 
