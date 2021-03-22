@@ -44,11 +44,18 @@ class ExamRequest
     /**
      * @Assert\NotBlank()
      * @Assert\NotNull()
-     * @Type("string")
+     * @Type("integer")
      *
-     * @var string $end
+     * @var integer $time
      */
-    public $end;
+    public $time;
 
-
+    /**
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
+     * @Type("integer")
+     *
+     * @var integer $pass
+     */
+    public $pass;
 }

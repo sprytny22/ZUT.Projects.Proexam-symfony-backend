@@ -14,6 +14,8 @@ use App\Repository\UserRepository;
 use App\Request\ExamRequest;
 use App\Request\UpdateRequest;
 use App\Service\ExamUpdateService;
+use Cron\Job\ShellJob;
+use Cron\Schedule\CrontabSchedule;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
@@ -74,7 +76,8 @@ class ExamController extends AbstractFOSRestController
                 'examId' => $exam->getId(),
                 'title' => $exam->getTitle(),
                 'startTime' => $exam->getStartDataTime(),
-                'endTime' => $exam->getEndDataTime(),
+                'time' => $exam->getTime(),
+                'pass' => $exam->getPass(),
                 'status' => $exam->getStatus()
             ];
 
@@ -96,7 +99,8 @@ class ExamController extends AbstractFOSRestController
             'examId' => $exam->getId(),
             'title' => $exam->getTitle(),
             'startTime' => $exam->getStartDataTime(),
-            'endTime' => $exam->getEndDataTime(),
+            'time' => $exam->getTime(),
+            'pass' => $exam->getPass(),
             'status' => $exam->getStatus()
         ];
 
@@ -192,7 +196,7 @@ class ExamController extends AbstractFOSRestController
         }
 
         if ($exam->getStatus() !== Exam::STATUS_PENDING) {
-            throw new BadRequestException('Need confirm!');
+            throw new BadRequestException('Cant join!');
         }
 
         if ($found) {
@@ -262,7 +266,7 @@ class ExamController extends AbstractFOSRestController
         }
 
         if ($result->getStatus() === Result::STATUS_CLOSE) {
-            return $this->handleView($this->view(['status' => 'closed'], Response::HTTP_OK));
+            throw new BadRequestException('Egzamin zakonczony!');
         }
 
         $data = json_decode($request->getContent());
@@ -307,17 +311,18 @@ class ExamController extends AbstractFOSRestController
         $testId = $request->test;
 
         /** @var Test $test */
-        $test = $this->testRepository->find($request->test);
+        $test = $this->testRepository->find($testId);
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         $exam = new Exam();
         $exam->setTitle($request->title);
         $exam->setStatus("NON_CONFIRM");
+        $exam->setPass($request->pass);
+        $exam->setTime($request->time);
         $exam->setTest($test);
         $exam->setUsers($users);
 
         $exam->setStartDataTime(new DateTime($request->start));
-        $exam->setEndDataTime(new DateTime($request->end));
 
         $this->entityManager->persist($exam);
         $this->entityManager->flush();

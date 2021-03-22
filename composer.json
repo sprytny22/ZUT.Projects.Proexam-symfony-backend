@@ -7,7 +7,9 @@
         "php": ">=7.2.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-json": "*",
         "composer/package-versions-deprecated": "1.11.99.1",
+        "cron/cron": "^1.5",
         "doctrine/annotations": "^1.11",
         "doctrine/doctrine-bundle": "^2.2",
         "doctrine/doctrine-migrations-bundle": "^3.0",
@@ -33,8 +35,7 @@
         "symfony/uid": "5.2.*",
         "symfony/validator": "5.2.*",
         "symfony/web-link": "5.2.*",
-        "symfony/yaml": "5.2.*",
-      "ext-json": "*"
+        "symfony/yaml": "5.2.*"
     },
     "config": {
         "optimize-autoloader": true,

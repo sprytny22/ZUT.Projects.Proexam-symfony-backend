@@ -49,9 +49,15 @@ class Exam
     private $startDataTime;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="integer")
      */
-    private $endDataTime;
+    private $time = 0;
+
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $pass = 0;
 
     /**
      * @return mixed
@@ -136,17 +142,33 @@ class Exam
     /**
      * @return mixed
      */
-    public function getEndDataTime(): \DateTime
+    public function getTime()
     {
-        return $this->endDataTime;
+        return $this->time;
     }
 
     /**
-     * @param mixed $endDataTime
+     * @param mixed $time
      */
-    public function setEndDataTime(\DateTime $endDataTime): void
+    public function setTime($time): void
     {
-        $this->endDataTime = $endDataTime;
+        $this->time = $time;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPass(): int
+    {
+        return $this->pass;
+    }
+
+    /**
+     * @param int $pass
+     */
+    public function setPass(int $pass): void
+    {
+        $this->pass = $pass;
     }
 
     public function getId(): ?int
