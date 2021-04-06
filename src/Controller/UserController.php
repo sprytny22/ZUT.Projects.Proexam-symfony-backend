@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use Lcobucci\JWT\Configuration;
+use Lcobucci\JWT\Signer\Hmac\Sha256;
+use Lcobucci\JWT\Signer\Key;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Request\PasswordRequest;
 use App\Request\UserRequest;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +21,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\WebLink\Link;
 
 class UserController extends AbstractFOSRestController
 {
@@ -56,11 +60,14 @@ class UserController extends AbstractFOSRestController
     }
 
     /**
+     * @param Request $request
      * @return Response
      */
-    public function details(): Response
+    public function details(Request $request): Response
     {
         $user = $this->getUser();
+        $username = $this->getUser()->getUsername();
+
         if ($user === null) {
             throw new BadRequestException('Bad Request');
         }
@@ -70,7 +77,29 @@ class UserController extends AbstractFOSRestController
           'roles' => $user->getRoles(),
         ];
 
-        return $this->handleView($this->view($details, Response::HTTP_OK));
+        $response = $this->handleView($this->view($details, Response::HTTP_OK));
+
+        $hubUrl = $this->getParameter('mercure.default_hub');
+        $this->addLink($request, new Link('mercure', $hubUrl));
+
+        $key = Key\InMemory::plainText('aVerySecretKey'); // don't forget to set this parameter! Test value: !ChangeMe!
+        $configuration = Configuration::forSymmetricSigner(new Sha256(), $key);
+
+        $token = $configuration->builder()
+            ->withClaim('mercure', ['subscribe' => [sprintf("/%s", $username)]])
+            ->getToken($configuration->signer(), $configuration->signingKey())
+            ->toString();
+
+        $cookie = Cookie::create('mercureAuthorization')
+            ->withValue($token)
+            ->withPath('/.well-known/mercure')
+            ->withSecure(true)
+            ->withHttpOnly(true)
+            ->withSameSite('strict')
+        ;
+        $response->headers->setCookie($cookie);
+
+        return $response;
     }
 
     public function showAll(): Response

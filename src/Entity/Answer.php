@@ -32,7 +32,7 @@ class Answer
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $answer;
+    private $answer = "";
 
     public function getId(): ?int
     {
@@ -79,14 +79,23 @@ class Answer
         return $this->answer;
     }
 
-    public function setOpenAnswer(array $answers): void
+    public function setCloseAnswer(array $answers): void
     {
         $data = implode(',', $answers);
         $this->answer = $data;
     }
 
-    public function setCloseAnswer(?string $answer): void
+    public function setOpenAnswer(?string $answer): void
     {
         $this->answer = $answer;
+    }
+
+    public function toResponse()
+    {
+        return [
+            "questionId" => $this->question->getId(),
+            "answer" => $this->answer,
+            "type" => $this->question->getType()
+        ];
     }
 }

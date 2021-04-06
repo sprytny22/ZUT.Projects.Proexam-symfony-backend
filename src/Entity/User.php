@@ -137,4 +137,12 @@ class User implements UserInterface
     {
         return $actual === $new;
     }
+
+    public function toResponse()
+    {
+        return [
+            'id' => $this->getId(),
+            'email'=> $this->getEmail()
+        ];
+    }
 }

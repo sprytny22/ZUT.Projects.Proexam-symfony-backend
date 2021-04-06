@@ -1,6 +1,11 @@
 api_login_check:
     path: /api/login_check
 
+index:
+    path: /indexx
+    methods: [POST]
+    controller: App\Controller\ExamController::index
+
 details:
     path: /api/details
     methods: [GET]
@@ -56,8 +61,13 @@ startExam:
     methods: [GET]
     controller: App\Controller\ExamController::startExam
 
+userWatchList:
+    path: /api/exam/watch-user/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::userWatchList
+
 watchExam:
-    path: /api/exam/watch/{id}
+    path: /api/exam/watch/{examId}/user/{userId}
     methods: [GET]
     controller: App\Controller\ExamController::watchExam
 

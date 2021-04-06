@@ -35,8 +35,6 @@ class QuestionRequest
     public $content;
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      * @Type("string")
      *
      * @var string $a
@@ -44,8 +42,6 @@ class QuestionRequest
     public $a;
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      * @Type("string")
      *
      * @var string $b
@@ -53,8 +49,6 @@ class QuestionRequest
     public $b;
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      * @Type("string")
      *
      * @var string $c
@@ -62,8 +56,6 @@ class QuestionRequest
     public $c;
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      * @Type("string")
      *
      * @var string $d
@@ -71,8 +63,6 @@ class QuestionRequest
     public $d;
 
     /**
-     * @Assert\NotBlank()
-     * @Assert\NotNull()
      * @Type("string")
      *
      * @var string $correct

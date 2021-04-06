@@ -118,7 +118,7 @@ class Result
     }
 
 
-    public function toJoinResponse()
+    public function toResponse()
     {
         $answers = $this->answers;
 
@@ -130,6 +130,11 @@ class Result
               'type' => $answer->getQuestion()->getType(),
               'category' => $answer->getQuestion()->getCategory(),
               'answerId' => $answer->getId(),
+              'A' => $answer->getQuestion()->getA(),
+              'B' => $answer->getQuestion()->getB(),
+              'C' => $answer->getQuestion()->getC(),
+              'D' => $answer->getQuestion()->getD(),
+              'answerData' => $answer->getAnswer()
             ];
 
             $questions[] = $answerResponse;
