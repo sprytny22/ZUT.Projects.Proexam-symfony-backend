@@ -95,7 +95,7 @@ class Answer
         return [
             "questionId" => $this->question->getId(),
             "answer" => $this->answer,
-            "type" => $this->question->getType()
+            "type" => $this->question->getType(),
         ];
     }
 }

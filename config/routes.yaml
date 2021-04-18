@@ -22,7 +22,7 @@ showUser:
     controller: App\Controller\UserController::show
 
 addUser:
-    path: /user
+    path: /api/user
     methods: [ POST ]
     controller: App\Controller\UserController::add
 
@@ -81,6 +81,11 @@ updateResult:
     methods: [POST]
     controller: App\Controller\ExamController::updateResult
 
+getResults:
+    path: /api/results
+    methods: [GET]
+    controller: App\Controller\ExamController::getResults
+
 closeResult:
     path: /api/exam/close/{id}
     methods: [GET]
@@ -120,3 +125,8 @@ addQuestion:
     path: /api/question
     methods: [POST]
     controller: App\Controller\TestController::addQuestion
+
+archiveExam:
+    path: /api/exam/archive/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::archiveExam

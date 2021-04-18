@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Exam;
+use App\Entity\Result;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,11 +21,23 @@ class ExamRepository extends ServiceEntityRepository
         parent::__construct($registry, Exam::class);
     }
 
+    public function findAllWithoutArchive()
+    {
+        return $this->createQueryBuilder('e')
+            ->where('e.status != :status')
+            ->setParameter('status', Exam::STATUS_ARCHIVED)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
     public function findByUser(User $user)
     {
         return $this->createQueryBuilder('e')
             ->join('e.users', 'u')
             ->where('u = :user')
+            ->andWhere('e.status != :status')
+            ->setParameter('status', Exam::STATUS_ARCHIVED)
             ->setParameter('user', $user)
             ->getQuery()
             ->getResult()

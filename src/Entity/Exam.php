@@ -15,6 +15,8 @@ class Exam
     const STATUS_CONFIRMED = 'CONFIRMED';
     const STATUS_PENDING = 'PENDING';
     const STATUS_FINISHED = 'FINISHED';
+    const STATUS_ARCHIVED = 'ARCHIVED';
+
 
     /**
      * @ORM\Id

@@ -21,6 +21,32 @@ class ResultRepository extends ServiceEntityRepository
         parent::__construct($registry, Result::class);
     }
 
+    public function findClosedResults(User $user = null) {
+        if ($user === null) {
+            return $this->createQueryBuilder('r')
+                ->Where('r.status != :status')
+                ->setParameter('status', Result::STATUS_OPEN)
+                ->getQuery()
+                ->getResult()
+                ;
+        }
+
+        $qb = $this->createQueryBuilder('r');
+
+        return $qb->where('r.user = :user')
+            ->andWhere($qb->expr()->orX(
+                $qb->expr()->eq('r.status', ':status'),
+                $qb->expr()->eq('r.status', ':status_marked')
+            ))
+        ->setParameter('user', $user)
+        ->setParameter('status', Result::STATUS_CLOSE)
+        ->setParameter('status_marked', Result::STATUS_CLOSE_MARKED)
+        ->getQuery()
+        ->getResult()
+        ;
+
+    }
+
     public function findCurrentResult(User $user, Exam $exam)
     {
         return $this->createQueryBuilder('r')

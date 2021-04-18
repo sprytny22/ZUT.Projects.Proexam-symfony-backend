@@ -30,6 +30,33 @@ class UserRequest
     /**
      * @Assert\NotBlank()
      * @Assert\NotNull()
+     * @Type("string")
+     *
+     * @var string $name
+     */
+    public $name;
+
+    /**
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
+     * @Type("string")
+     *
+     * @var string $surname
+     */
+    public $surname;
+
+    /**
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
+     * @Type("string")
+     *
+     * @var string $pesel
+     */
+    public $pesel;
+
+    /**
+     * @Assert\NotBlank()
+     * @Assert\NotNull()
      * @Type("integer")
      *
      * @var int $role

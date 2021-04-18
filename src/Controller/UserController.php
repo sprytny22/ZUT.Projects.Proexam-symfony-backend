@@ -73,8 +73,9 @@ class UserController extends AbstractFOSRestController
         }
 
         $details = [
-          'user' => $user->getUsername(),
-          'roles' => $user->getRoles(),
+            'user' => $user->getUsername(),
+            'roles' => $user->getRoles(),
+            'name' => $user->getFullName(),
         ];
 
         $response = $this->handleView($this->view($details, Response::HTTP_OK));
@@ -124,11 +125,14 @@ class UserController extends AbstractFOSRestController
     {
         $errors = $this->validator->validate($request);
         if (count($errors) > 0) {
-            throw new BadRequestException('Bad Request');
+            throw new BadRequestException('Bad Request'.$errors);
         }
 
         $user = new User();
         $user->setEmail($request->email);
+        $user->setName($request->name);
+        $user->setSurname($request->surname);
+        $user->setPesel($request->pesel);
         $user->setRolesByCode($request->role);
 
         $encoded = $this->encoder->encodePassword($user, $request->password);

@@ -14,6 +14,7 @@ class Result
 {
     const STATUS_OPEN = 'open';
     const STATUS_CLOSE = 'close';
+    const STATUS_CLOSE_MARKED = 'close_marked';
 
     /**
      * @ORM\Id
@@ -43,6 +44,48 @@ class Result
      * @ORM\Column(type="string", length=255)
      */
     private $status;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $pass;
+
+//    /**
+//     * @ORM\Column(type="string", length=255)
+//     */
+//    private $marked;
+//
+//    /**
+//     * @return mixed
+//     */
+//    public function getMarked()
+//    {
+//        return $this->marked;
+//    }
+//
+//    /**
+//     * @param mixed $marked
+//     */
+//    public function setMarked($marked): void
+//    {
+//        $this->marked = $marked;
+//    }
+
+    /**
+     * @return mixed
+     */
+    public function getPass()
+    {
+        return $this->pass;
+    }
+
+    /**
+     * @param mixed $pass
+     */
+    public function setPass(int $pass): void
+    {
+        $this->pass = $pass;
+    }
 
 
     public function __construct()
@@ -144,7 +187,62 @@ class Result
             'result' => $this->getId(),
             'exam' => $this->exam->getTitle(),
             'test' => $this->exam->getTest()->getName(),
-            'questions' => $questions
+            'user' => $this->getUser()->toResponse(),
+            'questions' => $questions,
+            'status' => 'ok',
         ];
+    }
+
+    public function calculateResult(): float
+    {
+        $len = count($this->getAnswers());
+        $counter = 0;
+        $hasOpenedAnswers = false;
+        $debuger = [];
+
+        /** @var Answer $answer */
+        foreach ($this->getAnswers() as $answer)
+        {
+            /** @var Question $question */
+            $question = $answer->getQuestion();
+            if ($question->getType() === 'close') {
+                $correct = $question->getCorrect();
+                $actual = $answer->getAnswer();
+                $debuger[] = '1';
+
+                if ($actual === "" || $actual === null)  {
+                    $debuger[] = '2';
+                    continue;
+                }
+
+                $letter = explode( ',', $actual);
+                if (count($letter) > 1) {
+                    $debuger[] = '3';
+                    continue;
+                }
+
+                if ($letter[0] === $correct) {
+                    $debuger[] = '4';
+                    $counter++;
+                }
+
+                $debuger[] = '5';
+                continue;
+            }
+            else {
+                $debuger[] = '6';
+                $hasOpenedAnswers = true;
+            }
+        }
+
+        if (!$hasOpenedAnswers) {
+            $debuger[] = '7';
+            $this->status = self::STATUS_CLOSE_MARKED;
+        }
+
+        $result = ($counter/$len) * 100;
+        $this->pass = $result;
+
+        return $result;
     }
 }

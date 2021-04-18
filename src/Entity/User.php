@@ -28,6 +28,26 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=180)
+     */
+    private $name;
+
+    /**
+     * @ORM\Column(type="string", length=180)
+     */
+    private $surname;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $birthDate;
+
+    /**
+     * @ORM\Column(type="string", length=11)
+     */
+    private $pesel;
+
+    /**
      * @ORM\Column(type="string", length=180, unique=true)
      */
     private $email;
@@ -45,6 +65,70 @@ class User implements UserInterface
 
     public function __construct()
     {
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param mixed $name
+     */
+    public function setName($name): void
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSurname()
+    {
+        return $this->surname;
+    }
+
+    /**
+     * @param mixed $surname
+     */
+    public function setSurname($surname): void
+    {
+        $this->surname = $surname;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getBirthDate()
+    {
+        return $this->birthDate;
+    }
+
+    /**
+     * @param mixed $birthDate
+     */
+    public function setBirthDate($birthDate): void
+    {
+        $this->birthDate = $birthDate;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPesel()
+    {
+        return $this->pesel;
+    }
+
+    /**
+     * @param mixed $pesel
+     */
+    public function setPesel(string $pesel): void
+    {
+        $this->pesel = $pesel;
     }
 
     public function getId(): ?int
@@ -138,11 +222,19 @@ class User implements UserInterface
         return $actual === $new;
     }
 
+    public function getFullName(): string
+    {
+        return $this->name.' '.$this->surname;
+    }
+
     public function toResponse()
     {
         return [
             'id' => $this->getId(),
-            'email'=> $this->getEmail()
+            'email'=> $this->getEmail(),
+            'name'=> $this->getName(),
+            'surname'=> $this->getSurname(),
+            'pesel' => $this->getPesel()
         ];
     }
 }

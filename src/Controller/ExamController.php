@@ -17,6 +17,7 @@ use Cron\Job\ShellJob;
 use Cron\Schedule\CrontabSchedule;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\EventListener\ValidateRequestListener;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Response;
@@ -63,7 +64,7 @@ class ExamController extends AbstractFOSRestController
     public function showExams(ExamRepository $examRepository): Response
     {
         if ($this->isGranted('ROLE_EXAMER')) {
-            $exams = $examRepository->findAll();
+            $exams = $examRepository->findAllWithoutArchive();
         }
         else {
             /** @var User $user */
@@ -170,14 +171,34 @@ class ExamController extends AbstractFOSRestController
             'user' => $user->getId()
         ]);
 
+        $response = [
+            'user' => $user->toResponse(),
+            'exam' => $exam->getTitle(),
+            'test' => $exam->getTest()->getName(),
+            'status' => 'init',
+        ];
+
         if ($result === null) {
-            throw new BadRequestException('Użytkownik nie rozpoczął jeszcze egzaminu!');
+            return $this->handleView($this->view($response, Response::HTTP_OK));
         }
         if (empty($result)) {
-            throw new BadRequestException('Użytkownik nie rozpoczął jeszcze egzaminu!');
+            return $this->handleView($this->view($response, Response::HTTP_OK));
         }
 
+        /** @var Result $result */
         $result = $result[0];
+
+        if ($result->getStatus() === 'close') {
+
+            $response = [
+                'user' => $user->toResponse(),
+                'exam' => $exam->getTitle(),
+                'test' => $exam->getTest()->getName(),
+                'status' => 'closed',
+            ];
+
+            return $this->handleView($this->view($response, Response::HTTP_OK));
+        }
 
         $hubUrl = $this->getParameter('mercure.default_hub');
         $this->addLink($request, new Link('mercure', $hubUrl));
@@ -282,9 +303,25 @@ class ExamController extends AbstractFOSRestController
         }
 
         $result->setStatus(Result::STATUS_CLOSE);
+        $result->calculateResult();
 
         $this->entityManager->persist($result);
         $this->entityManager->flush();
+
+        $updated = [
+            'status' => 'end',
+        ];
+
+
+        $update = new Update(
+            sprintf("result/%s", $result->getId()),
+            json_encode([
+                "data" => $updated,
+                "status" => 'end'
+            ])
+        );
+
+        $this->publisher->__invoke($update);
 
         return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }
@@ -337,25 +374,80 @@ class ExamController extends AbstractFOSRestController
 
         $update = new Update(
             sprintf("result/%s", $result->getId()),
-            json_encode(["data" => $updated])
+            json_encode([
+                "data" => $updated,
+                "status" => 'ok'
+            ])
         );
 
         $this->publisher->__invoke($update);
 
+        return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
+    }
 
-//        $update = new Update(
-//            [
-//                sprintf("/conversations/%s", $conversation->getId()),
-//                sprintf("/conversations/%s", $recipient->getUser()->getUsername()),
-//            ],
-//            $messageSerialized,
-//            [
-//                sprintf("/%s", $recipient->getUser()->getUsername())
-//            ]
-//        );
+    /**
+     * @ParamConverter("exam", options={"mapping": {"id": "id"}})
+     * @IsGranted("ROLE_EXAMER")
+     * @param Exam $exam
+     * @return Response
+     */
+    public function archiveExam(Exam $exam): Response
+    {
+        if ($exam === null) {
+            throw new BadRequestException('Bad Request!');
+        }
 
+        $exam->setStatus(Exam::STATUS_ARCHIVED);
+
+        $this->entityManager->persist($exam);
+        $this->entityManager->flush();
 
         return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
+    }
+
+    public function getResults(ResultRepository $resultRepository)
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($this->isGranted('ROLE_USER')) {
+            $results = $resultRepository->findClosedResults($user);
+        }
+        else {
+            $results = $resultRepository->findClosedResults();
+        }
+
+        $response = [];
+
+        /** @var Result $result */
+        foreach ($results as $result)
+        {
+            /** @var Exam $exam */
+            $exam = $result->getExam();
+            $user = $result->getUser();
+            $fullname = $user->getFullname();
+
+            /** @var Test $test */
+            $test = $exam->getTest();
+
+            $numberOfAnswers = count($result->getAnswers());
+            $passed = $result->getPass() > $exam->getPass();
+
+            $response[] = [
+                'fullname' => $fullname,
+                'examName' => $exam->getTitle(),
+                'testName' => $test->getName(),
+                'numberOfAnswers' => $numberOfAnswers,
+                'pass' => $result->getPass(),
+                'toPass'=> $exam->getPass(),
+                'time' => $exam->getTime(),
+                'startDate' => $exam->getStartDataTime(),
+                'passed' => $passed,
+                'status' => $result->getStatus()
+            ];
+        }
+
+        return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
     /**
