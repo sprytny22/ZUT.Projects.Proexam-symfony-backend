@@ -193,6 +193,13 @@ class Question
         $this->correct = $correct;
     }
 
+    public function isCorrect(string $answer): bool
+    {
+        if ($answer === $this->getCorrect()) return true;
+
+        return false;
+    }
+
     public function toResponse(): array
     {
         return [

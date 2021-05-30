@@ -41,6 +41,11 @@ class Result
     private $answers;
 
     /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Logger", inversedBy="Result")
+     */
+    private $logs;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private $status;
@@ -71,6 +76,30 @@ class Result
 //        $this->marked = $marked;
 //    }
 
+
+
+    /**
+     * @return mixed
+     */
+    public function getLogs(): Collection
+    {
+        return $this->logs;
+    }
+
+    public function addLog(Logger $log)
+    {
+        $this->logs->add($log);
+    }
+
+
+    /**
+     * @param mixed $logs
+     */
+    public function setLogs($logs): void
+    {
+        $this->logs = $logs;
+    }
+
     /**
      * @return mixed
      */
@@ -91,6 +120,7 @@ class Result
     public function __construct()
     {
         $this->status = self::STATUS_OPEN;
+        $this->logs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -193,6 +223,70 @@ class Result
         ];
     }
 
+    public function getOpenAnswers(): array
+    {
+        $answers = [];
+
+        /** @var Answer $answer */
+        foreach($this->getAnswers() as $answer) {
+            if ($answer->getQuestion()->getType() === 'open') {
+                $answers[] = $answer;
+            }
+        }
+
+        return $answers;
+    }
+
+    public function logsToResponse(): array
+    {
+        $logs = $this->getLogs();
+        $nodes = [];
+
+        /** @var Logger $log */
+        foreach($logs as $log) {
+            $node = [
+                'id' => $log->getAnswer()->getId(),
+                'from' => $log->getFromAnswer(),
+                'to' => $log->getToAnswer(),
+            ];
+
+            $nodes[] = $node;
+        }
+
+        return $nodes;
+    }
+
+    public function calcaulateIfSuspect(): bool
+    {
+        $answers = $this->getAnswers();
+        $logs = $this->getLogs()->toArray();
+        $counter = 0;
+
+
+        /** @var Logger $log */
+        foreach($logs as $log) {
+            $status = false;
+
+            foreach($answers as $answer) {
+                if($answer->getId() === $log->getAnswer()->getId()) {
+
+                    $status = $log->getIsSuspect();
+                }
+            }
+            if ($status) {
+                $counter++;
+            }
+        }
+
+        $len = count($answers);
+
+        if ((($counter/$len) * 100) >= 50) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function calculateResult(): float
     {
         $len = count($this->getAnswers());
@@ -208,35 +302,28 @@ class Result
             if ($question->getType() === 'close') {
                 $correct = $question->getCorrect();
                 $actual = $answer->getAnswer();
-                $debuger[] = '1';
 
                 if ($actual === "" || $actual === null)  {
-                    $debuger[] = '2';
                     continue;
                 }
 
                 $letter = explode( ',', $actual);
                 if (count($letter) > 1) {
-                    $debuger[] = '3';
                     continue;
                 }
 
                 if ($letter[0] === $correct) {
-                    $debuger[] = '4';
                     $counter++;
                 }
 
-                $debuger[] = '5';
                 continue;
             }
             else {
-                $debuger[] = '6';
                 $hasOpenedAnswers = true;
             }
         }
 
         if (!$hasOpenedAnswers) {
-            $debuger[] = '7';
             $this->status = self::STATUS_CLOSE_MARKED;
         }
 

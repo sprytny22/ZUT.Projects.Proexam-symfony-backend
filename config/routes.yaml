@@ -130,3 +130,14 @@ archiveExam:
     path: /api/exam/archive/{id}
     methods: [GET]
     controller: App\Controller\ExamController::archiveExam
+
+getReviewAnswers:
+    path: /api/exam/review/{id}
+    methods: [GET]
+    controller: App\Controller\ExamController::getReviewAnswers
+
+sendReviewAnswers:
+    path: /api/exam/review/{id}
+    methods: [POST]
+    controller: App\Controller\ExamController::sendReviewAnswers
+

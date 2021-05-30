@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Answer;
 use App\Entity\Exam;
+use App\Entity\Logger;
 use App\Entity\Result;
 use App\Entity\Test;
 use App\Entity\User;
@@ -17,6 +18,7 @@ use Cron\Job\ShellJob;
 use Cron\Schedule\CrontabSchedule;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Void_;
 use Symfony\Component\HttpKernel\EventListener\ValidateRequestListener;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
@@ -353,11 +355,41 @@ class ExamController extends AbstractFOSRestController
                     if($datum->answer === 'None') {
                         continue;
                     }
+                    $old = $answer->getAnswer();
+                    $actual = $datum->answer;
+
                     if ($answer->getQuestion()->getType() === 'close') {
+                        $log = new Logger();
+                        $log->setAnswer($answer);
+                        $log->setFromAnswer($old);
+                        $log->setToAnswer($actual[0]);
+
+                        if (!$answer->getQuestion()->isCorrect($old) && $answer->getQuestion()->isCorrect($actual[0])) {
+                            $log->setIsSuspect(true);
+                        }else if ($answer->getQuestion()->isCorrect($old) && !$answer->getQuestion()->isCorrect($actual[0])) {
+                            $log->setIsSuspect(false);
+                        }
+
+                        if ($old !== implode(',',$actual)) {
+                            $result->addLog($log);
+                            $this->entityManager->persist($log);
+                        }
                         $answer->setCloseAnswer($datum->answer);
+
                     } else {
+                        $log = new Logger();
+                        $log->setAnswer($answer);
+                        $log->setFromAnswer($old);
+                        $log->setToAnswer($actual[0]);
+
+
+                        if ($old !== implode(',',$actual)) {
+                            $result->addLog($log);
+                            $this->entityManager->persist($log);
+                        }
                         $answer->setOpenAnswer($datum->answer);
                     }
+
                 }
             }
             $this->entityManager->persist($answer);
@@ -434,6 +466,7 @@ class ExamController extends AbstractFOSRestController
             $passed = $result->getPass() > $exam->getPass();
 
             $response[] = [
+                'id' => $result->getId(),
                 'fullname' => $fullname,
                 'examName' => $exam->getTitle(),
                 'testName' => $test->getName(),
@@ -443,7 +476,8 @@ class ExamController extends AbstractFOSRestController
                 'time' => $exam->getTime(),
                 'startDate' => $exam->getStartDataTime(),
                 'passed' => $passed,
-                'status' => $result->getStatus()
+                'status' => $result->getStatus(),
+                'suspect'=> $result->calcaulateIfSuspect()
             ];
         }
 
@@ -485,4 +519,71 @@ class ExamController extends AbstractFOSRestController
 
         return $this->handleView($this->view(['status' => 'ok'], Response::HTTP_OK));
     }
+
+    /**
+     * @ParamConverter("result", options={"mapping": {"id": "id"}})
+     * @param Result $result
+     * @return Response
+     */
+    public function getReviewAnswers(Result $result): Response
+    {
+        $answers = $result->getOpenAnswers();
+        $user = $result->getUser();
+
+        $response = [];
+
+        /** @var Answer $answer */
+        foreach($answers as $answer) {
+            $response[] = [
+                'id' => $answer->getId(),
+                'title' => $answer->getQuestion()->getContent(),
+                'out' => $answer->getAnswer()
+            ];
+        }
+
+        $toResponse = [
+            'data' => $response,
+            'user' => $user->toResponse(),
+            'logs' => $result->logsToResponse(),
+            'suspect' => $result->calcaulateIfSuspect()
+        ];
+
+        return $this->handleView($this->view($toResponse, Response::HTTP_OK));
+    }
+
+    /**
+     * @ParamConverter("result", options={"mapping": {"id": "id"}})
+     * @IsGranted("ROLE_EXAMER")
+     * @param Result $result
+     * @param Request $request
+     * @return Response
+     */
+    public function sendReviewAnswers(Result $result, Request $request): Response
+    {
+        $reviews = json_decode($request->getContent());
+
+        $answers = $result->getAnswers();
+        $currentPass = $result->getPass();
+        $answersNumber = count($answers);
+
+        $count = 0;
+
+        foreach($reviews as $review) {
+            if ($review->out === 'accept') {
+                $count++;
+            }
+        }
+
+        $proc = ($count/$answersNumber) * 100;
+        $final = $proc + $currentPass;
+
+        $result->setPass($final);
+        $result->setStatus(Result::STATUS_CLOSE_MARKED);
+
+        $this->entityManager->persist($result);
+        $this->entityManager->flush();
+
+        return $this->handleView($this->view([], Response::HTTP_OK));
+    }
+
 }
